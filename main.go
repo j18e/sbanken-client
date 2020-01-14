@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -18,12 +19,6 @@ const (
 	API_SERVER = "https://api.sbanken.no"
 	TOKEN_URL  = "https://auth.sbanken.no/identityserver/connect/token"
 )
-
-type Client struct {
-	cli        *http.Client
-	customerID string
-	accountID  string
-}
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -75,9 +70,15 @@ func main() {
 	}
 	for _, trans := range transactions {
 		if trans.CardDetails != nil {
-			fmt.Println(trans)
+			json.NewEncoder(os.Stdout).Encode(trans)
 		}
 	}
+}
+
+type Client struct {
+	cli        *http.Client
+	customerID string
+	accountID  string
 }
 
 func (c *Client) callAPI(path string) ([]byte, error) {
@@ -104,21 +105,33 @@ func (c *Client) callAPI(path string) ([]byte, error) {
 }
 
 type Transaction struct {
-	Date        string       `json:"accountingDate"`
-	Amount      float64      `json:"amount"`
-	Type        string       `json:"transactionType"`
-	Text        string       `json:"text"`
-	CardDetails *CardDetails `json:"cardDetails"`
+	AccountingDate        string       `json:"accountingDate"`
+	InterestDate          string       `json:"interestDate"`
+	OtherAccountSpecified bool         `json:"otherAccountNumberSpecified"`
+	Amount                float64      `json:"amount"`
+	Text                  string       `json:"text"`
+	Type                  string       `json:"transactionType"`
+	TypeCode              int          `json:"transactionTypeCode"`
+	TypeText              string       `json:"transactionTypeText"`
+	IsReservation         bool         `json:"isReservation"`
+	ReservationType       string       `json:"reservationType"`
+	Source                string       `json:"source"`
+	CardDetailsSpecified  bool         `json:"cardDetailsSpecified"`
+	CardDetails           *CardDetails `json:"cardDetails"`
+	DetailSpecified       bool         `json:"transactionDetailSpecified"`
 }
 
 type CardDetails struct {
-	Card             string `json:"cardNumber"`
-	MerchantCategory string `json:"merchangeCategoryDescription"`
-	MerchantCity     string `json:"merchantCity"`
-	MerchantName     string `json:"merchantName"`
-	OriginalCurrency string `json:"originalCurrencyCode"`
-	PurchaseDate     string `json:"purchaseDate"`
-	TransactionID    string `json:"transactionId"`
+	Card             string  `json:"cardNumber"`
+	CurrencyAmount   float64 `json:"currencyAmount"`
+	CurrencyRate     float64 `json:"currencyRate"`
+	CategoryCode     string  `json:"merchantCategoryCode"`
+	CategoryDesc     string  `json:"merchantCategoryDescription"`
+	City             string  `json:"merchantCity"`
+	Merchant         string  `json:"merchantName"`
+	OriginalCurrency string  `json:"originalCurrencyCode"`
+	PurchaseDate     string  `json:"purchaseDate"`
+	TransactionID    string  `json:"transactionId"`
 }
 
 func (c *Client) getTransactions(acctID string) ([]Transaction, error) {
