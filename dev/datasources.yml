@@ -1,0 +1,14 @@
+apiVersion: 1
+datasources:
+- name: sbanken-client
+  type: postgres
+  access: proxy
+  url: postgres:5432
+  database: sbanken-client
+  user: sbanken-client
+  secureJsonData:
+    password: supersecret
+  isDefault: true
+  jsonData:
+    sslmode: disable
+    postgresVersion: 906
