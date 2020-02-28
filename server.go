@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 func NewServer(stor *Storage) *Server {
@@ -26,9 +27,11 @@ func (s *Server) Routes() {
 }
 
 func (s *Server) Run(ctx context.Context) error {
+	const listenAddr = ":8000"
 	errchan := make(chan error, 1)
 	go func() {
-		errchan <- s.router.Run(":8000")
+		log.Infof("http server listening on %s", listenAddr)
+		errchan <- s.router.Run(listenAddr)
 	}()
 	select {
 	case err := <-errchan:
