@@ -3,34 +3,69 @@
 {{ template "header.html" .}}
 
   <nav>
-    <ul class="month-selector">
+    <ul id="month-selector">
       <a class="month" href="/spending/{{printf "%04d" .prevMonth.Year}}/{{printf "%02d" .prevMonth.MonthNum}}"><li>{{.prevMonth}}</li></a>
       <a class="month current-month" href="#"><li>{{.month}}</li></a>
       <a class="month" href="/spending/{{printf "%04d" .nextMonth.Year}}/{{printf "%02d" .nextMonth.MonthNum}}"><li>{{.nextMonth}}</li></a>
     </ul>
   </nav>
 
-  <div class="spending-total">
-    Total spending in {{.month}}: {{.total}}
+  <div id="spending-total">
+    Total: {{.total}} NOK
   </div>
 
-  <div role="grid" class="table">
+  <div role="grid" class="table" id="spending-table">
     <div role="row" class="table-header">
       <div class="cell">Date</div>
       <div class="cell">NOK</div>
       <div class="cell">Category</div>
-      <div class="cell">City</div>
+      <div class="cell">Location</div>
       <div class="cell">Vendor</div>
+    </div>
+    <div role="row" class="table-header">
+      <div class="cell">
+        <select id="date-selector" onclick="selectOpt(this, 'date-cell')">
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="cell">
+        <select id="nok-selector" onclick="selectOpt(this, 'nok-cell')">
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="cell">
+        <select id="category-selector" onclick="selectOpt(this, 'category-cell')">
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="cell">
+        <select id="location-selector" onclick="selectOpt(this, 'location-cell')">
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="cell">
+        <select id="vendor-selector" onclick="selectOpt(this, 'vendor-cell')">
+          <option value="all">All</option>
+        </select>
+      </div>
     </div>
   {{range .payload }}
     <a href="/purchase/{{.ID}}" class="table-row">
-      <div class="cell">{{ .Date.Day }} {{ .Date.Month }}, {{ .Date.Year }}</div>
-      <div class="cell">{{.NOK}}</div>
-      <div class="cell">{{.Category}}</div>
-      <div class="cell">{{.Location}}</div>
-      <div class="cell">{{.Vendor}}</div>
+      <div class="cell date-cell">{{ .Date.Day }} {{ .Date.Month }}, {{ .Date.Year }}</div>
+      <div class="cell nok-cell">{{.NOK}}</div>
+      <div class="cell category-cell">{{.Category}}</div>
+      <div class="cell location-cell">{{.Location}}</div>
+      <div class="cell vendor-cell">{{.Vendor}}</div>
     </a>
   {{end}}
   </div>
+  <script>
+    updateTotal();
+    addToSelectors('date-selector', 'date-cell');
+    addToSelectors('nok-selector', 'nok-cell');
+    addToSelectors('category-selector', 'category-cell');
+    addToSelectors('location-selector', 'location-cell');
+    addToSelectors('vendor-selector', 'vendor-cell');
+  </script>
 
 {{ template "footer.html" .}}
