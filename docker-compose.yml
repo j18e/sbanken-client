@@ -1,17 +1,5 @@
 version: "3.1"
 services:
-  grafana:
-    image: grafana/grafana:6.6.2
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: "supersecret"
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
-      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
-    ports: ["3000:3000"]
-    volumes:
-    - "./dev/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro"
-    - "./dev/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro"
-    - "./dev/dashboard.json:/etc/grafana/dashboards/dashboard.json:ro"
   postgres:
     image: postgres:9.6
     environment:
