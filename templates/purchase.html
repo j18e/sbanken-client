@@ -1,0 +1,26 @@
+{{ template "header.html" .}}
+
+  <div class="table">
+    <div class="table-row">
+      <div class="cell">Date:</div>
+      <div class="cell">{{.purchase.Date.Day}} {{.purchase.Date.Month}}, {{.purchase.Date.Year}}</div>
+    </div>
+    <div class="table-row">
+      <div class="cell">NOK:</div>
+      <div class="cell">{{.purchase.NOK}}</div>
+    </div>
+    <div class="table-row">
+      <div class="cell">Description:</div>
+      <div class="cell">{{.purchase.Category}}</div>
+    </div>
+    <div class="table-row">
+      <div class="cell">Location:</div>
+      <div class="cell">{{.purchase.Location}}</div>
+    </div>
+    <div class="table-row">
+      <div class="cell">Vendor:</div>
+      <div class="cell">{{.purchase.Vendor}}</div>
+    </div>
+  </div>
+
+{{ template "footer.html" .}}

@@ -24,6 +24,7 @@ type Transaction struct {
 }
 
 type CardDetails struct {
+	TransactionID    string    `json:"transactionId"`
 	Card             string    `json:"cardNumber"`
 	CurrencyAmount   float64   `json:"currencyAmount"`
 	CurrencyRate     float64   `json:"currencyRate"`
@@ -33,7 +34,6 @@ type CardDetails struct {
 	Merchant         string    `json:"merchantName"`
 	OriginalCurrency string    `json:"originalCurrencyCode"`
 	PurchaseDate     time.Time `json:"purchaseDate"`
-	TransactionID    string    `json:"transactionId"`
 }
 
 func (c *Client) Transactions(acctID string) ([]*CardDetails, error) {

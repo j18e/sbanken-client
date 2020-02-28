@@ -1,0 +1,36 @@
+<!--index.html-->
+
+{{ template "header.html" .}}
+
+  <nav>
+    <ul class="month-selector">
+      <a class="month" href="/spending/{{printf "%04d" .prevMonth.Year}}/{{printf "%02d" .prevMonth.MonthNum}}"><li>{{.prevMonth}}</li></a>
+      <a class="month current-month" href="#"><li>{{.month}}</li></a>
+      <a class="month" href="/spending/{{printf "%04d" .nextMonth.Year}}/{{printf "%02d" .nextMonth.MonthNum}}"><li>{{.nextMonth}}</li></a>
+    </ul>
+  </nav>
+
+  <div class="spending-total">
+    Total spending in {{.month}}: {{.total}}
+  </div>
+
+  <div role="grid" class="table">
+    <div role="row" class="table-header">
+      <div class="cell">Date</div>
+      <div class="cell">NOK</div>
+      <div class="cell">Category</div>
+      <div class="cell">City</div>
+      <div class="cell">Vendor</div>
+    </div>
+  {{range .payload }}
+    <a href="/purchase/{{.ID}}" class="table-row">
+      <div class="cell">{{ .Date.Day }} {{ .Date.Month }}, {{ .Date.Year }}</div>
+      <div class="cell">{{.NOK}}</div>
+      <div class="cell">{{.Category}}</div>
+      <div class="cell">{{.Location}}</div>
+      <div class="cell">{{.Vendor}}</div>
+    </a>
+  {{end}}
+  </div>
+
+{{ template "footer.html" .}}

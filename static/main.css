@@ -1,0 +1,82 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: sans-serif;
+  font-size: 18px;
+  min-height: 100%;
+  margin: 0;
+}
+
+a {
+  text-decoration: inherit;
+}
+
+li {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+}
+
+.table {
+  display: table;
+  width: 100%;
+  padding: 0px;
+}
+
+.table-header, .table-row {
+  display: table-row;
+  padding: 10px;
+}
+
+.cell {
+  display: table-cell;
+  padding: 10px;
+}
+
+#all {
+  margin: 0px;
+  padding: 0px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#header {
+  display: flex;
+  flex-direction: row;
+  margin: 0px;
+  padding: 0px;
+}
+
+.navbar-item {
+  flex-grow: 1;
+  flex: 1;
+  text-align: center;
+}
+
+#main {
+  flex: 1;
+}
+
+#footer {
+  height: 200px;
+  width: 100%;
+}
+
+.month {
+  height: 100%;
+  margin: 0px;
+  padding: 10px;
+}
+
+.month-selector {
+  display: flex;
+  flex-direction: row;
+}
+
+.spending-total {
+  padding: 10px;
+}

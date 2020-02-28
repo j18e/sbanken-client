@@ -1,0 +1,56 @@
+/*
+  colour pallette:
+  #030A0D
+  #102426
+  #1C3C40
+  #2E5559
+  #456E73
+ */
+
+html, body, input, textarea, select, button {
+  color: #e8e6e3;
+}
+
+html {
+  background-color: #102426
+}
+
+body {
+  background-color: #030A0D;
+}
+
+a {
+  color: inherit;
+}
+
+#header, #footer {
+  background-color: #2E5559;
+}
+
+.navbar-item:hover {
+  background-color: #1C3C40;
+}
+
+.table-header {
+  background-color: #2E5559;
+}
+
+.table-row:hover {
+  background-color: #1C3C40;
+}
+
+.month {
+  background-color: #2E5559;
+}
+
+.month:hover {
+  background-color: #1C3C40;
+}
+
+.current-month {
+  background-color: #1C3C40;
+}
+
+.spending-total {
+  background-color: #456E73;
+}

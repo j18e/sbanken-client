@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/j18e/sbanken-client/models"
 	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/clientcredentials"
@@ -17,9 +18,10 @@ type Client struct {
 	cli        *http.Client
 	customerID string
 	accountID  string
+	storage    *Storage
 }
 
-func NewClient() *Client {
+func NewClient(stor *Storage) *Client {
 	const tokenURL = "https://auth.sbanken.no/identityserver/connect/token"
 	var authParms struct {
 		AccountID    string `required:"true" envconfig:"ACCOUNT_ID"`
@@ -43,8 +45,22 @@ func NewClient() *Client {
 		cli:        httpCli,
 		customerID: authParms.CustomerID,
 		accountID:  authParms.AccountID,
+		storage:    stor,
 	}
 	return &cli
+}
+
+func (c *Client) Loop(ctx context.Context, ticker *time.Ticker) error {
+	for {
+		select {
+		case <-ticker.C:
+			if err := c.Purchases(); err != nil {
+				log.Errorf("getting purhcases: %v", err)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
 func (c *Client) callAPI(path string) (io.Reader, error) {
@@ -63,4 +79,53 @@ func (c *Client) callAPI(path string) (io.Reader, error) {
 	}
 
 	return res.Body, nil
+}
+
+func (c *Client) Purchases() error {
+	accounts, err := c.Accounts()
+	if err != nil {
+		return fmt.Errorf("getting accounts: %v", err)
+	}
+	for _, acct := range accounts {
+		trans, err := c.Transactions(acct.ID)
+		if err != nil {
+			log.Errorf("getting transactions from account %s: %v", acct.Name, err)
+			continue
+		}
+		if len(trans) < 1 {
+			continue
+		}
+		if err := c.storage.AddPurchases(convertToPurchases(trans, acct.Name)); err != nil {
+			log.Errorf("storing purchases from account %s: %v", acct.Name, err)
+			continue
+		}
+		log.Infof("loaded %d purchases from %s", len(trans), acct.Name)
+	}
+	return nil
+}
+
+func convertToPurchases(cx []*CardDetails, acct string) []*models.Purchase {
+	var res []*models.Purchase
+	for _, cd := range cx {
+		p := models.Purchase{
+			ID: cd.TransactionID,
+			Date: models.Date{
+				Year:     cd.PurchaseDate.Year(),
+				Month:    cd.PurchaseDate.Month(),
+				MonthNum: int(cd.PurchaseDate.Month()),
+				Day:      cd.PurchaseDate.Day(),
+			},
+			Account:  acct,
+			Category: cd.CategoryDesc,
+			Location: cd.City,
+			Vendor:   cd.Merchant,
+		}
+		nok := cd.CurrencyAmount
+		if cd.CurrencyRate != 0 {
+			nok *= cd.CurrencyRate
+		}
+		p.NOK = int(nok)
+		res = append(res, &p)
+	}
+	return res
 }
