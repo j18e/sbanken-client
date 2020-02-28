@@ -1,24 +1,26 @@
-package main
+package server
 
 import (
 	"context"
 
 	"github.com/gin-gonic/gin"
+	"github.com/j18e/sbanken-client/pkg/storage"
 	log "github.com/sirupsen/logrus"
 )
 
-func NewServer(stor *Storage) *Server {
+func NewServer(stor *storage.Storage) *Server {
 	r := gin.Default()
 	r.Routes()
 	return &Server{Storage: stor, router: r}
 }
 
 type Server struct {
-	Storage *Storage
+	Storage *storage.Storage
 	router  *gin.Engine
 }
 
 func (s *Server) Routes() {
+	s.router.LoadHTMLGlob("templates/*")
 	s.router.Static("/assets", "./static")
 	s.router.StaticFile("/favicon.ico", "./static/favicon.ico")
 	s.router.GET("/", s.handlerHome())

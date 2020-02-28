@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/j18e/sbanken-client/pkg/client"
+	"github.com/j18e/sbanken-client/pkg/server"
+	"github.com/j18e/sbanken-client/pkg/storage"
 	"github.com/joho/godotenv"
 	"github.com/oklog/run"
 	log "github.com/sirupsen/logrus"
@@ -20,37 +22,35 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("loading .env: %v", err)
 	}
+	if debug := os.Getenv("DEBUG"); debug != "true" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 }
 
 func main() {
-	stor := NewStorage()
-	cli := NewClient(stor)
+	stor := storage.NewStorage()
+	cli := client.NewClient(stor)
 
 	// make sure everything works a first time
 	if err := cli.Purchases(); err != nil {
 		log.Fatal(err)
 	}
 
-	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
-	srv := &Server{Storage: stor, router: r}
+	srv := server.NewServer(stor)
 	srv.Routes()
 
 	var g run.Group
 	{
 		// add the data loader
 		ctx, cancel := context.WithCancel(context.Background())
-		dur := 6 * time.Hour
 		g.Add(func() error {
-			ticker := time.NewTicker(dur)
-			log.Infof("loading transactions from sbanken every %v", dur)
-			defer ticker.Stop()
-			return cli.Loop(ctx, ticker)
+			return cli.Loop(ctx, 6*time.Hour)
 		}, func(error) {
 			cancel()
 		})
 	}
 	{
+		// add the http server
 		ctx, cancel := context.WithCancel(context.Background())
 		g.Add(func() error {
 			return srv.Run(ctx)
@@ -58,24 +58,8 @@ func main() {
 			cancel()
 		})
 	}
-	{
-		// react to ctrl+c
-		ctx, cancel := context.WithCancel(context.Background())
-		sigchan := make(chan os.Signal, 1)
-		signal.Notify(sigchan, os.Interrupt, os.Kill)
-		g.Add(func() error {
-			select {
-			case sig := <-sigchan:
-				err := run.SignalError{Signal: sig}
-				log.Infof("received signal %v", err)
-				return err
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		}, func(error) {
-			cancel()
-		})
-	}
+	// react to ctrl+c
+	g.Add(run.SignalHandler(context.Background(), os.Interrupt, os.Kill))
 
 	log.Fatalf("the server was terminated with %v", g.Run())
 }

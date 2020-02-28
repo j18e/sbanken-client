@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/j18e/sbanken-client/models"
+	"github.com/j18e/sbanken-client/pkg/models"
 )
 
 func (s *Server) handlerHome() gin.HandlerFunc {

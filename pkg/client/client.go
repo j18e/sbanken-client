@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"context"
@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/j18e/sbanken-client/models"
+	"github.com/j18e/sbanken-client/pkg/models"
+	"github.com/j18e/sbanken-client/pkg/storage"
 	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/clientcredentials"
@@ -18,10 +19,10 @@ type Client struct {
 	cli        *http.Client
 	customerID string
 	accountID  string
-	storage    *Storage
+	storage    *storage.Storage
 }
 
-func NewClient(stor *Storage) *Client {
+func NewClient(stor *storage.Storage) *Client {
 	const tokenURL = "https://auth.sbanken.no/identityserver/connect/token"
 	var authParms struct {
 		AccountID    string `required:"true" envconfig:"ACCOUNT_ID"`
@@ -38,19 +39,21 @@ func NewClient(stor *Storage) *Client {
 		ClientSecret: authParms.ClientSecret,
 		TokenURL:     tokenURL,
 	}
-	httpCli := conf.Client(context.TODO())
-	httpCli.Timeout = 10 * time.Second
+	cli := conf.Client(context.TODO())
+	cli.Timeout = 10 * time.Second
 
-	cli := Client{
-		cli:        httpCli,
+	return &Client{
+		cli:        cli,
 		customerID: authParms.CustomerID,
 		accountID:  authParms.AccountID,
 		storage:    stor,
 	}
-	return &cli
 }
 
-func (c *Client) Loop(ctx context.Context, ticker *time.Ticker) error {
+func (c *Client) Loop(ctx context.Context, dur time.Duration) error {
+	ticker := time.NewTicker(dur)
+	log.Infof("loading transactions from sbanken every %v", dur)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
