@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  font-family: sans-serif;
+  font-size: 18px;
 }
 
 html, body {
@@ -31,6 +33,11 @@ li {
 
 .cell {
   display: table-cell;
+  padding: 10px;
+}
+
+.table-header > .cell > * {
+  width: 100%;
   padding: 10px;
 }
 
@@ -72,11 +79,22 @@ li {
   padding: 10px;
 }
 
-.month-selector {
+#month-selector {
   display: flex;
   flex-direction: row;
 }
 
-.spending-total {
-  padding: 10px;
+#spending-total {
+  padding: 20px;
+}
+
+select {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: .6em 1.4em .5em .8em;
+  border: 0px solid;
+  border-radius: .5em;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  background-color: #030A0D;
 }
