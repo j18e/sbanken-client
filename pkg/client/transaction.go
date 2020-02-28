@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/j18e/sbanken-client/pkg/models"
 )
 
-type Transaction struct {
+type transaction struct {
 	AccountingDate        time.Time    `json:"accountingDate"`
 	InterestDate          time.Time    `json:"interestDate"`
 	OtherAccountSpecified bool         `json:"otherAccountNumberSpecified"`
@@ -19,11 +21,11 @@ type Transaction struct {
 	ReservationType       string       `json:"reservationType"`
 	Source                string       `json:"source"`
 	CardDetailsSpecified  bool         `json:"cardDetailsSpecified"`
-	CardDetails           *CardDetails `json:"cardDetails"`
+	CardDetails           *cardDetails `json:"cardDetails"`
 	DetailSpecified       bool         `json:"transactionDetailSpecified"`
 }
 
-type CardDetails struct {
+type cardDetails struct {
 	TransactionID    string    `json:"transactionId"`
 	Card             string    `json:"cardNumber"`
 	CurrencyAmount   float64   `json:"currencyAmount"`
@@ -36,7 +38,28 @@ type CardDetails struct {
 	PurchaseDate     time.Time `json:"purchaseDate"`
 }
 
-func (c *Client) Transactions(acctID string) ([]*CardDetails, error) {
+func (cd *cardDetails) purchase(acct string) *models.Purchase {
+	nok := cd.CurrencyAmount
+	if cd.CurrencyRate != 0 {
+		nok *= cd.CurrencyRate
+	}
+	return &models.Purchase{
+		ID:  cd.TransactionID,
+		NOK: int(nok),
+		Date: models.Date{
+			Year:     cd.PurchaseDate.Year(),
+			Month:    cd.PurchaseDate.Month(),
+			MonthNum: int(cd.PurchaseDate.Month()),
+			Day:      cd.PurchaseDate.Day(),
+		},
+		Account:  acct,
+		Category: cd.CategoryDesc,
+		Location: cd.City,
+		Vendor:   cd.Merchant,
+	}
+}
+
+func (c *Client) transactions(acctID string) ([]*cardDetails, error) {
 	bod, err := c.callAPI("/exec.bank/api/v1/Transactions/" + acctID)
 	if err != nil {
 		return nil, err
@@ -44,7 +67,7 @@ func (c *Client) Transactions(acctID string) ([]*CardDetails, error) {
 
 	var data struct {
 		Length *int           `json:"availableItems"`
-		Items  []*Transaction `json:"items"`
+		Items  []*transaction `json:"items"`
 	}
 	if err := json.NewDecoder(bod).Decode(&data); err != nil {
 		return nil, fmt.Errorf("unmarshaling json: %w", err)
@@ -54,7 +77,7 @@ func (c *Client) Transactions(acctID string) ([]*CardDetails, error) {
 		return nil, fmt.Errorf(`missing field "availableItems" in response data`)
 	}
 
-	var res []*CardDetails
+	var res []*cardDetails
 	for _, trans := range data.Items {
 		if trans.CardDetails != nil {
 			res = append(res, trans.CardDetails)

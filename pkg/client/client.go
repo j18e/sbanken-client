@@ -24,6 +24,8 @@ type Client struct {
 
 func NewClient(stor *storage.Storage) *Client {
 	const tokenURL = "https://auth.sbanken.no/identityserver/connect/token"
+
+	// load mandatory environment variables
 	var authParms struct {
 		AccountID    string `required:"true" envconfig:"ACCOUNT_ID"`
 		CustomerID   string `required:"true" envconfig:"CUSTOMER_ID"`
@@ -34,6 +36,7 @@ func NewClient(stor *storage.Storage) *Client {
 		log.Fatal(err)
 	}
 
+	// get http client with oauth config
 	conf := clientcredentials.Config{
 		ClientID:     authParms.ClientID,
 		ClientSecret: authParms.ClientSecret,
@@ -66,8 +69,48 @@ func (c *Client) Loop(ctx context.Context, dur time.Duration) error {
 	}
 }
 
+func (c *Client) Purchases() error {
+	// get accounts
+	accounts, err := c.accounts()
+	if err != nil {
+		return fmt.Errorf("getting accounts: %v", err)
+	}
+
+	for _, acct := range accounts {
+		// get card details of every transaction from account
+		cdx, err := c.transactions(acct.ID)
+		if err != nil {
+			log.Errorf("getting transactions from account %s: %v", acct.Name, err)
+			continue
+		}
+
+		// do nothing if no card details are found
+		if len(cdx) < 1 {
+			continue
+		}
+
+		// convert card details to purchases
+		purchases := func() []*models.Purchase {
+			var res []*models.Purchase
+			for _, cd := range cdx {
+				res = append(res, cd.purchase(acct.Name))
+			}
+			return res
+		}()
+
+		// commit purchases to storage
+		if err := c.storage.AddPurchases(purchases); err != nil {
+			log.Errorf("storing purchases from account %s: %v", acct.Name, err)
+			continue
+		}
+		log.Infof("loaded %d purchases from %s", len(purchases), acct.Name)
+	}
+	return nil
+}
+
 func (c *Client) callAPI(path string) (io.Reader, error) {
 	const apiServer = "https://api.sbanken.no"
+
 	req, _ := http.NewRequest("GET", apiServer+path, nil)
 	req.Header.Set("customerId", c.customerID)
 
@@ -82,53 +125,4 @@ func (c *Client) callAPI(path string) (io.Reader, error) {
 	}
 
 	return res.Body, nil
-}
-
-func (c *Client) Purchases() error {
-	accounts, err := c.Accounts()
-	if err != nil {
-		return fmt.Errorf("getting accounts: %v", err)
-	}
-	for _, acct := range accounts {
-		trans, err := c.Transactions(acct.ID)
-		if err != nil {
-			log.Errorf("getting transactions from account %s: %v", acct.Name, err)
-			continue
-		}
-		if len(trans) < 1 {
-			continue
-		}
-		if err := c.storage.AddPurchases(convertToPurchases(trans, acct.Name)); err != nil {
-			log.Errorf("storing purchases from account %s: %v", acct.Name, err)
-			continue
-		}
-		log.Infof("loaded %d purchases from %s", len(trans), acct.Name)
-	}
-	return nil
-}
-
-func convertToPurchases(cx []*CardDetails, acct string) []*models.Purchase {
-	var res []*models.Purchase
-	for _, cd := range cx {
-		p := models.Purchase{
-			ID: cd.TransactionID,
-			Date: models.Date{
-				Year:     cd.PurchaseDate.Year(),
-				Month:    cd.PurchaseDate.Month(),
-				MonthNum: int(cd.PurchaseDate.Month()),
-				Day:      cd.PurchaseDate.Day(),
-			},
-			Account:  acct,
-			Category: cd.CategoryDesc,
-			Location: cd.City,
-			Vendor:   cd.Merchant,
-		}
-		nok := cd.CurrencyAmount
-		if cd.CurrencyRate != 0 {
-			nok *= cd.CurrencyRate
-		}
-		p.NOK = int(nok)
-		res = append(res, &p)
-	}
-	return res
 }

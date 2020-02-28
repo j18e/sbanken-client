@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type Account struct {
+type account struct {
 	ID          string  `json:"accountId"`
 	Number      string  `json:"accountNumber"`
 	CustomerID  string  `json:"ownerCustomerId"`
@@ -16,15 +16,15 @@ type Account struct {
 	CreditLimit float64 `json:"creditLimit"`
 }
 
-func (c *Client) Accounts() ([]Account, error) {
-	var accounts []Account
+func (c *Client) accounts() ([]*account, error) {
+	var accounts []*account
 	bod, err := c.callAPI("/exec.bank/api/v1/Accounts")
 	if err != nil {
 		return accounts, err
 	}
 
 	var accountsRes struct {
-		Items []Account `json:"items"`
+		Items []*account `json:"items"`
 	}
 	if err := json.NewDecoder(bod).Decode(&accountsRes); err != nil {
 		return accounts, fmt.Errorf("unmarshaling json: %w", err)
