@@ -1,5 +1,9 @@
 FROM alpine:3.10
 
-ADD sbanken-client static templates ./
+WORKDIR /work
+
+ADD sbanken-client .
+ADD static ./static
+ADD templates ./templates
 
 ENTRYPOINT ["./sbanken-client"]
