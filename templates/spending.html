@@ -11,7 +11,7 @@
   </nav>
 
   <div id="spending-total">
-    Total spending in {{.month}}: {{.total}}
+    Total: {{.total}} NOK
   </div>
 
   <div role="grid" class="table" id="spending-table">
@@ -24,27 +24,27 @@
     </div>
     <div role="row" class="table-header">
       <div class="cell">
-        <select id="date-selector" onclick="selectOpt(this)">
+        <select id="date-selector" onclick="selectOpt(this, 'date-cell')">
           <option value="all">All</option>
         </select>
       </div>
       <div class="cell">
-        <select id="nok-selector">
+        <select id="nok-selector" onclick="selectOpt(this, 'nok-cell')">
           <option value="all">All</option>
         </select>
       </div>
       <div class="cell">
-        <select id="category-selector">
+        <select id="category-selector" onclick="selectOpt(this, 'category-cell')">
           <option value="all">All</option>
         </select>
       </div>
       <div class="cell">
-        <select id="" name="location-selector">
+        <select id="location-selector" onclick="selectOpt(this, 'location-cell')">
           <option value="all">All</option>
         </select>
       </div>
       <div class="cell">
-        <select id="" name="vendor-selector">
+        <select id="vendor-selector" onclick="selectOpt(this, 'vendor-cell')">
           <option value="all">All</option>
         </select>
       </div>
@@ -59,6 +59,13 @@
     </a>
   {{end}}
   </div>
-  <script>addToSelectors();</script>
+  <script>
+    updateTotal();
+    addToSelectors('date-selector', 'date-cell');
+    addToSelectors('nok-selector', 'nok-cell');
+    addToSelectors('category-selector', 'category-cell');
+    addToSelectors('location-selector', 'location-cell');
+    addToSelectors('vendor-selector', 'vendor-cell');
+  </script>
 
 {{ template "footer.html" .}}
