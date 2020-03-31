@@ -2,70 +2,59 @@
 
 {{ template "header.html" .}}
 
-  <nav>
-    <ul id="month-selector">
-      <a class="month" href="/spending/{{printf "%04d" .prevMonth.Year}}/{{printf "%02d" .prevMonth.MonthNum}}"><li>{{.prevMonth}}</li></a>
-      <a class="month current-month" href="#"><li>{{.month}}</li></a>
-      <a class="month" href="/spending/{{printf "%04d" .nextMonth.Year}}/{{printf "%02d" .nextMonth.MonthNum}}"><li>{{.nextMonth}}</li></a>
-    </ul>
-  </nav>
+<section class="section">
 
-  <div id="spending-total">
-    Total: {{.total}} NOK
+  <div class="block">
+    <nav class="breadcrumb">
+      <ul id="month-picker">
+        <li><a href="/spending/{{printf "%04d" .prevMonth.Year}}/{{printf "%02d" .prevMonth.MonthNum}}">{{.prevMonth}}</a></li>
+        <li class="is-active"><a href="#">{{.month}}</a></li>
+        <li><a href="/spending/{{printf "%04d" .nextMonth.Year}}/{{printf "%02d" .nextMonth.MonthNum}}">{{.nextMonth}}</a></li>
+      </ul>
+    </nav>
   </div>
 
-  <div role="grid" class="table" id="spending-table">
-    <div role="row" class="table-header">
-      <div class="cell">Date</div>
-      <div class="cell">NOK</div>
-      <div class="cell">Category</div>
-      <div class="cell">Location</div>
-      <div class="cell">Vendor</div>
+  <div class="block">
+    <div class="subtitle" id="spending-total">Total: {{.total}} NOK</div>
+  </div>
+
+  <div class="block">
+    <div id="category-select" class="select">
+      <select onchange="selectOpt(this, 'category-cell')">
+        <option value="all">Select category</option>
+      </select>
     </div>
-    <div role="row" class="table-header">
-      <div class="cell">
-        <select id="date-selector" onclick="selectOpt(this, 'date-cell')">
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div class="cell">
-        <select id="nok-selector" onclick="selectOpt(this, 'nok-cell')">
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div class="cell">
-        <select id="category-selector" onclick="selectOpt(this, 'category-cell')">
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div class="cell">
-        <select id="location-selector" onclick="selectOpt(this, 'location-cell')">
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div class="cell">
-        <select id="vendor-selector" onclick="selectOpt(this, 'vendor-cell')">
-          <option value="all">All</option>
-        </select>
-      </div>
-    </div>
+  </div>
+
+  <table class="table is-hoverable" id="spending-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>NOK</th>
+        <th>Category</th>
+        <th>Location</th>
+        <th>Vendor</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
   {{range .payload }}
-    <a href="/purchase/{{.ID}}" class="table-row">
-      <div class="cell date-cell">{{ .Date.Day }} {{ .Date.Month }}, {{ .Date.Year }}</div>
-      <div class="cell nok-cell">{{.NOK}}</div>
-      <div class="cell category-cell">{{.Category}}</div>
-      <div class="cell location-cell">{{.Location}}</div>
-      <div class="cell vendor-cell">{{.Vendor}}</div>
-    </a>
+      <tr>
+        <th class="date-cell">{{.Date.Stamp}}</th>
+        <th class="nok-cell">{{.NOK}}</th>
+        <th class="category-cell">{{.Category}}</th>
+        <th class="location-cell">{{.Location}}</th>
+        <th class="vendor-cell">{{.Vendor}}</th>
+        <th><a href="/purchase/{{.ID}}" class="button is-warning">Edit</a></th>
+      </tr>
   {{end}}
-  </div>
+    </tbody>
+  </table>
   <script>
     updateTotal();
-    addToSelectors('date-selector', 'date-cell');
-    addToSelectors('nok-selector', 'nok-cell');
-    addToSelectors('category-selector', 'category-cell');
-    addToSelectors('location-selector', 'location-cell');
-    addToSelectors('vendor-selector', 'vendor-cell');
+    addToSelectors("category-select", "category-cell");
   </script>
+
+</section>
 
 {{ template "footer.html" .}}

@@ -1,31 +1,64 @@
 {{ template "header.html" .}}
 
-  <div class="table">
-    <div class="table-row">
-      <div class="cell">Date:</div>
-      <div class="cell">{{.purchase.Date.Day}} {{.purchase.Date.Month}}, {{.purchase.Date.Year}}</div>
-      <div class="cell"><form><input type="text" id="category"/></form></div>
+  <section class="section">
+    <div class="container">
+
+      <div class="title">Purchase from {{.purchase.Date.Day}} {{.purchase.Date.Month}}, {{.purchase.Date.Year}}</div>
+
+      <div class="field">
+        <label class="label">Date</label>
+        <div class="control">
+          <input class="input" type="number" style="width:6rem" placeholder="yyyy" value="{{.purchase.Date.Year}}"/>
+          <input class="input" type="number" style="width:4rem" placeholder="mm" value="{{.purchase.Date.MonthNum}}"/>
+          <input class="input" type="number" style="width:4rem" placeholder="dd" value="{{.purchase.Date.Day}}"/>
+        </div>
+      </div>
+
+      <div class="columns">
+        <div class="column is-half">
+          <div class="field">
+            <label class="label">NOK</label>
+            <div class="control">
+              <input class="input" type="text" placeholder="NOK" value="{{.purchase.NOK}}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Category</label>
+            <div class="control">
+              <input class="input" type="text" value="{{.purchase.Category}}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Location</label>
+            <div class="control">
+              <input class="input" type="text" value="{{.purchase.Location}}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Vendor</label>
+            <div class="control">
+              <input class="input" type="text" value="{{.purchase.Vendor}}">
+            </div>
+          </div>
+
+          <div class="field is-grouped">
+            <div class="control">
+              <a class="button is-success" href="#">Save</a>
+            </div>
+            <div class="control">
+              <a class="button is-danger" href="#">Delete</a>
+            </div>
+            <div class="control">
+              <a class="button is-link" href="/spending/{{printf "%04d" .purchase.Date.Year}}/{{printf "%02d" .purchase.Date.MonthNum}}">Cancel</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div class="table-row">
-      <div class="cell">NOK:</div>
-      <div class="cell">{{.purchase.NOK}}</div>
-      <div class="cell"><form><input type="text" id="category"/></form></div>
-    </div>
-    <div class="table-row">
-      <div class="cell">Category:</div>
-      <div class="cell">{{.purchase.Category}}</div>
-      <div class="cell"><form><input type="text" id="category"/></form></div>
-    </div>
-    <div class="table-row">
-      <div class="cell">Location:</div>
-      <div class="cell">{{.purchase.Location}}</div>
-      <div class="cell"><form><input type="text" id="category"/></form></div>
-    </div>
-    <div class="table-row">
-      <div class="cell">Vendor:</div>
-      <div class="cell">{{.purchase.Vendor}}</div>
-      <div class="cell"><form><input type="text" id="category"/></form></div>
-    </div>
-  </div>
+  </section>
 
 {{ template "footer.html" .}}

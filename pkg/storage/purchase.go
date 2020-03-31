@@ -57,7 +57,7 @@ func (s *Storage) GetPurchases(month models.Date) ([]*models.Purchase, error) {
 		if err != nil {
 			return nil, err
 		}
-		p.Date = models.Date{Year: d.Year(), Month: d.Month(), Day: d.Day()}
+		p.Date = models.Date{Year: d.Year(), Month: d.Month(), MonthNum: int(d.Month()), Day: d.Day()}
 		res = append(res, &p)
 	}
 	return res, nil
@@ -82,6 +82,6 @@ func (s *Storage) GetPurchase(id string) (*models.Purchase, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.Date = models.Date{Year: d.Year(), Month: d.Month(), Day: d.Day()}
+	p.Date = models.Date{Year: d.Year(), Month: d.Month(), MonthNum: int(d.Month()), Day: d.Day()}
 	return &p, nil
 }

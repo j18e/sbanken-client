@@ -1,6 +1,6 @@
 function addToSelectors(id, cellType) {
-  sel = document.getElementById(id);
-  rows = document.getElementById('spending-table').getElementsByClassName("table-row");
+  sel = document.getElementById(id).querySelector('select');
+  rows = document.querySelector('#spending-table').querySelector('tbody').querySelectorAll('tr');
   items = [];
 
   for (var i = 0; i < rows.length; i++) {
@@ -21,7 +21,7 @@ function addToSelectors(id, cellType) {
 
 function selectOpt(sel, cellType) {
   val = sel.options[sel.selectedIndex].value;
-  rows = document.getElementById("spending-table").getElementsByClassName("table-row");
+  rows = document.querySelector('#spending-table').querySelector('tbody').querySelectorAll('tr');
 
   for (var i = 0; i < rows.length; i++) {
     if (val == 'all') {
@@ -37,13 +37,14 @@ function selectOpt(sel, cellType) {
 
 function updateTotal() {
   var total = 0;
+  // document.querySelector('.message').remove();
   sel = document.getElementById('spending-total');
-  rows = document.getElementById("spending-table").getElementsByClassName("table-row");
+  rows = document.querySelector('#spending-table').querySelector('tbody').querySelectorAll('tr');
   for (var i = 0; i < rows.length; i++) {
     if (rows[i].style.display == 'none') {
       continue;
     }
     total += parseInt(rows[i].getElementsByClassName("nok-cell")[0].textContent);
   }
-  sel.textContent = 'Total: ' + total + ' NOK';
+  sel.textContent = `Total: ${total} NOK`;
 }
