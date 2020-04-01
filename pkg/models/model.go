@@ -6,20 +6,20 @@ import (
 )
 
 type Purchase struct {
-	Date     Date
-	ID       string
-	NOK      int
-	Account  string
-	Category string
-	Location string
-	Vendor   string
+	Date     Date   `json:"date"`
+	ID       string `json:"id"`
+	NOK      int    `json:"nok"`
+	Account  string `json:"account"`
+	Category string `json:"category"`
+	Location string `json:"location"`
+	Vendor   string `json:"vendor"`
 }
 
 type Date struct {
-	Year     int
-	Month    time.Month
-	MonthNum int
-	Day      int
+	Year     int        `json:"year"`
+	Month    time.Month `json:"month"`
+	MonthNum int        `json:"-"`
+	Day      int        `json:"day"`
 }
 
 func (d Date) String() string {

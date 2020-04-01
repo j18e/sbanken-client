@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,38 +34,49 @@ func main() {
 		Year:     now.Year(),
 		Month:    now.Month(),
 		MonthNum: int(now.Month()),
-		Day:      now.Day(),
+		Day:      1,
 	}
 
-	purchases = append(purchases,
-		&models.Purchase{
-			Date:     date,
-			ID:       "289234234230",
-			NOK:      100,
-			Account:  "main",
-			Category: "restaurants",
-			Location: "OSLO",
-			Vendor:   "BURGER KING",
-		},
-		&models.Purchase{
-			Date:     date,
-			ID:       "283942934748",
-			NOK:      100,
-			Account:  "main",
-			Category: "groceries",
-			Location: "OSLO",
-			Vendor:   "REMA 1000",
-		},
-		&models.Purchase{
-			Date:     date,
-			ID:       "892392308423",
-			NOK:      100,
-			Account:  "main",
-			Category: "entertainment",
-			Location: "INTERNET",
-			Vendor:   "NETFLIX",
-		},
-	)
+	id := 111111
+	for i := 0; i <= 10; i++ {
+		purchases = append(purchases,
+			&models.Purchase{
+				Date:     date,
+				ID:       strconv.Itoa(id),
+				NOK:      100,
+				Account:  "main",
+				Category: "restaurants",
+				Location: "OSLO",
+				Vendor:   "BURGER KING",
+			},
+		)
+		id++
+		purchases = append(purchases,
+			&models.Purchase{
+				Date:     date,
+				ID:       strconv.Itoa(id),
+				NOK:      100,
+				Account:  "main",
+				Category: "groceries",
+				Location: "OSLO",
+				Vendor:   "REMA 1000",
+			},
+		)
+		id++
+		purchases = append(purchases,
+			&models.Purchase{
+				Date:     date,
+				ID:       strconv.Itoa(id),
+				NOK:      100,
+				Account:  "main",
+				Category: "entertainment",
+				Location: "INTERNET",
+				Vendor:   "NETFLIX",
+			},
+		)
+		id++
+		date.Day += 1
+	}
 
 	if err := stor.AddPurchases(purchases); err != nil {
 		log.Fatal(err)

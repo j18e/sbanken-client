@@ -85,3 +85,13 @@ func (s *Storage) GetPurchase(id string) (*models.Purchase, error) {
 	p.Date = models.Date{Year: d.Year(), Month: d.Month(), MonthNum: int(d.Month()), Day: d.Day()}
 	return &p, nil
 }
+
+// DeletePurchase deletes a purchase from storage.
+func (s *Storage) DeletePurchase(id string) error {
+	res, err := s.db.Exec(fmt.Sprintf(`DELETE FROM purchases WHERE id = '%s'`, id))
+	changedRows, _ := res.RowsAffected()
+	if changedRows < 1 {
+		return ErrNotFound
+	}
+	return err
+}

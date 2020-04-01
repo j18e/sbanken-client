@@ -2,12 +2,17 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
+)
+
+var (
+	ErrNotFound = errors.New("not found")
 )
 
 const TABLE_SCHEMA = `CREATE TABLE IF NOT EXISTS purchases ( ` +

@@ -24,8 +24,13 @@ func (s *Server) Routes() {
 	s.router.Static("/assets", "./static")
 	s.router.StaticFile("/favicon.ico", "./static/favicon.ico")
 	s.router.GET("/", s.handlerHome())
-	s.router.GET("/purchase/:purchase", s.handlerPurchase())
 	s.router.GET("/spending/:year/:month", s.handlerSpendingMonth())
+
+	// api endpoints
+	s.router.GET("api/purchases/:year/:month", s.handlerAPIPurchases())
+	s.router.GET("/api/purchase/:purchase", s.handlerAPIPurchase())
+	// s.router.PUT("/api/purchase/:purchase", s.handlerPurchase())
+	s.router.DELETE("/api/purchase/:purchase", s.handlerAPIPurchaseDelete())
 }
 
 func (s *Server) Run(ctx context.Context) error {

@@ -38,7 +38,7 @@ function selectOpt(sel, cellType) {
 function updateTotal() {
   var total = 0;
   // document.querySelector('.message').remove();
-  sel = document.getElementById('spending-total');
+  sel = document.querySelector('#spending-total');
   rows = document.querySelector('#spending-table').querySelector('tbody').querySelectorAll('tr');
   for (var i = 0; i < rows.length; i++) {
     if (rows[i].style.display == 'none') {

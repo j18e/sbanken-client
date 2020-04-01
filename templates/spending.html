@@ -14,6 +14,8 @@
     </nav>
   </div>
 
+  <div class="block" id="output"></div>
+
   <div class="block">
     <div class="subtitle" id="spending-total">Total: {{.total}} NOK</div>
   </div>
@@ -26,6 +28,144 @@
     </div>
   </div>
 
+  <script>
+    function cancelEdit(id) {
+      row = document.querySelector('#' + id);
+
+      // change fields to inputs
+      dateCell = row.querySelector(".date-cell");
+      dateInputs = dateCell.querySelectorAll('input')
+      dateCell.innerHTML = dateInputs[0].placeholder + '-' + dateInputs[1].placeholder + '-' + dateInputs[2].placeholder;
+      nokCell = row.querySelector(".nok-cell");
+      nokCell.innerHTML = nokCell.querySelector('input').placeholder;
+      catCell = row.querySelector(".category-cell");
+      catCell.innerHTML = catCell.querySelector('input').placeholder;
+      locCell = row.querySelector(".location-cell");
+      locCell.innerHTML = locCell.querySelector('input').placeholder;
+      vendCell = row.querySelector(".vendor-cell");
+      vendCell.innerHTML = vendCell.querySelector('input').placeholder;
+
+      // swap buttons
+      b1 = row.querySelector('.button1-cell');
+      b1.querySelector('.edit-button').style.display = '';
+      b1.querySelector('.save-button').style.display = 'none';
+      b2 = row.querySelector('.button2-cell');
+      b2.querySelector('.delete-button').style.display = '';
+      b2.querySelector('.cancel-button').style.display = 'none';
+
+      row.classList.remove('currently-editing');
+    }
+
+    function cancelDelete(id) {
+      row = document.querySelector('#' + id);
+
+      // swap buttons
+      b1 = row.querySelector('.button1-cell');
+      b1.querySelector('.edit-button').style.display = '';
+      b1.querySelector('.confirm-delete-button').style.display = 'none';
+      b2 = row.querySelector('.button2-cell');
+      b2.querySelector('.delete-button').style.display = '';
+      b2.querySelector('.cancel-button').style.display = 'none';
+
+      row.classList.remove('currently-deleting');
+    }
+
+    function cancelAllEdits() {
+      rows = document.querySelectorAll('.currently-editing');
+      for (var i = 0; i < rows.length; i++) {
+        cancelEdit(rows[i].id);
+      }
+      rows = document.querySelectorAll('.currently-deleting');
+      for (var i = 0; i < rows.length; i++) {
+        cancelDelete(rows[i].id);
+      }
+    }
+
+    function editPurchase(id) {
+      cancelAllEdits();
+      row = document.querySelector('#' + id);
+      row.classList.add('currently-editing');
+
+      // change fields to inputs
+      dateCell = row.querySelector(".date-cell");
+      dateArray = dateCell.textContent.split('-');
+      dateCell.innerHTML = `
+        <input class="input" style="width:6rem" type="number" placeholder="${dateArray[0]}" value="${dateArray[0]}">
+        <input class="input" style="width:4rem" type="number" placeholder="${dateArray[1]}" value="${dateArray[1]}">
+        <input class="input" style="width:4rem" type="number" placeholder="${dateArray[2]}" value="${dateArray[2]}">
+      `
+      nokCell = row.querySelector(".nok-cell");
+      nokCell.innerHTML = `<input class="input" style="width:4rem" type="text"
+        placeholder="${nokCell.textContent}" value="${nokCell.textContent}">`
+      catCell = row.querySelector(".category-cell");
+      catCell.innerHTML = `<input class="input" style="width:8rem" type="text"
+        placeholder="${catCell.textContent}" value="${catCell.textContent}">`
+      locCell = row.querySelector(".location-cell");
+      locCell.innerHTML = `<input class="input" style="width:8rem" type="text"
+        placeholder="${locCell.textContent}" value="${locCell.textContent}">`
+      vendCell = row.querySelector(".vendor-cell");
+      vendCell.innerHTML = `<input class="input" style="width:8rem" type="text"
+        placeholder="${vendCell.textContent}" value="${vendCell.textContent}">`
+
+      // swap buttons
+      b1 = row.querySelector('.button1-cell');
+      b1.querySelector('.edit-button').style.display = 'none';
+      b1.querySelector('.save-button').style.display = '';
+      b2 = row.querySelector('.button2-cell');
+      b2.querySelector('.delete-button').style.display = 'none';
+      b2.querySelector('.cancel-button').style.display = '';
+      b2.querySelector('.cancel-button').addEventListener('click', cancelAllEdits);
+    }
+
+    function postMessage(severity, text) {
+      output = document.querySelector('#output');
+      for (var i = 0; i < output.children.length; i++) {
+        if (i < 2) {
+          continue
+        }
+        output.removeChild(output.children[i]);
+      }
+      output.innerHTML += `
+        <div class="message ${severity}">
+          <div class="message-body">${text}</div>
+        </div>
+      `
+    }
+
+    function deletePurchase(id) {
+      cancelAllEdits();
+      const row = document.querySelector('#' + id);
+      row.classList.add('currently-deleting');
+
+      // swap buttons
+      b1 = row.querySelector('.button1-cell');
+      b1.querySelector('.edit-button').style.display = 'none';
+      b1.querySelector('.save-button').style.display = 'none';
+      b1.querySelector('.confirm-delete-button').style.display = '';
+      b1.querySelector('.confirm-delete-button').addEventListener('click', function() {
+        purchaseId = id.replace(/^purchase-/, '');
+        fetch(`/api/purchase/${purchaseId}`, {method: "DELETE"})
+          .then(response => {
+            if (response.status != 200) {
+              postMessage("is-danger", "something went wrong deleting the transaction");
+              cancelAllEdits();
+              throw Error(response.statusText);
+            } else {
+              row.parentNode.removeChild(row);
+              postMessage("is-success", "transaction successfully deleted");
+              updateTotal();
+              return response.text();
+            }
+          })
+          .catch(err => console.log(err));
+      });
+      b2 = row.querySelector('.button2-cell');
+      b2.querySelector('.delete-button').style.display = 'none';
+      b2.querySelector('.cancel-button').style.display = '';
+      b2.querySelector('.cancel-button').addEventListener('click', cancelAllEdits);
+    }
+  </script>
+
   <table class="table is-hoverable" id="spending-table">
     <thead>
       <tr>
@@ -35,17 +175,36 @@
         <th>Location</th>
         <th>Vendor</th>
         <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
   {{range .payload }}
-      <tr>
+  <tr id="purchase-{{.ID}}">
         <th class="date-cell">{{.Date.Stamp}}</th>
         <th class="nok-cell">{{.NOK}}</th>
         <th class="category-cell">{{.Category}}</th>
         <th class="location-cell">{{.Location}}</th>
         <th class="vendor-cell">{{.Vendor}}</th>
-        <th><a href="/purchase/{{.ID}}" class="button is-warning">Edit</a></th>
+        <th class="button1-cell">
+          <button class="edit-button button is-warning" onclick="editPurchase('purchase-{{.ID}}')">
+            Edit
+          </button>
+          <button class="save-button button is-success" style="display:none">
+            Save
+          </button>
+          <button class="confirm-delete-button button is-danger" style="display:none">
+            Confirm delete
+          </button>
+        </th>
+        <th class="button2-cell">
+          <button class="delete-button button is-danger" onclick="deletePurchase('purchase-{{.ID}}')">
+            Delete
+          </button>
+          <button class="cancel-button button is-info" style="display:none">
+            Cancel
+          </button>
+        </th>
       </tr>
   {{end}}
     </tbody>

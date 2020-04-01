@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/j18e/sbanken-client/pkg/models"
+	"github.com/j18e/sbanken-client/pkg/storage"
 )
 
 func (s *Server) handlerHome() gin.HandlerFunc {
@@ -51,16 +52,61 @@ func (s *Server) handlerSpendingMonth() gin.HandlerFunc {
 	}
 }
 
-func (s *Server) handlerPurchase() gin.HandlerFunc {
+func (s *Server) handlerAPIPurchases() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params struct {
+			Year  int `uri:"year" binding:"required"`
+			Month int `uri:"month" binding:"required"`
+		}
+		if err := c.BindUri(&params); err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		p, err := s.Storage.GetPurchases(models.Date{
+			Year:     params.Year,
+			Month:    time.Month(params.Month),
+			MonthNum: params.Month,
+		})
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		c.JSON(http.StatusOK, p)
+	}
+}
+
+func (s *Server) handlerAPIPurchase() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		p, err := s.Storage.GetPurchase(c.Param("purchase"))
 		if err != nil {
 			c.AbortWithError(http.StatusNotFound, err)
 			return
 		}
-		c.HTML(http.StatusOK, "purchase.html", gin.H{
-			"title":    fmt.Sprintf("Purchase on %s", p.Date.Stamp()),
-			"purchase": p,
-		})
+		c.JSON(http.StatusOK, p)
+	}
+}
+
+// func (s *Server) handlerAPIPurchaseUpdate() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		p, err := s.Storage.GetPurchase(c.Param("purchase"))
+// 		if err != nil {
+// 			c.AbortWithError(http.StatusNotFound, err)
+// 			return
+// 		}
+// 		c.JSON(http.StatusOK, p)
+// 	}
+// }
+
+func (s *Server) handlerAPIPurchaseDelete() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if err := s.Storage.DeletePurchase(c.Param("purchase")); err != nil {
+			if err == storage.ErrNotFound {
+				c.String(http.StatusNotFound, "purchase not found")
+			} else {
+				c.AbortWithError(http.StatusInternalServerError, err)
+			}
+			return
+		}
+		c.String(http.StatusOK, "purchase deleted")
 	}
 }
