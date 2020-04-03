@@ -20,14 +20,25 @@ func (s *Storage) AddPurchases(px []*models.Purchase) error {
 		return fmt.Errorf("no purchases provided")
 	}
 
+	sanitize := func(s string) string {
+		return strings.Replace(s, `'`, `''`, -1)
+	}
+
 	vals := ""
 	for _, p := range px {
-		vals += fmt.Sprintf("('%s', '%s', %d, '%s', '%s', '%s', '%s'),\n", p.ID, p.Date.Stamp(),
-			p.NOK, p.Account, p.Category, p.Location, p.Vendor)
+		vals += fmt.Sprintf("('%s', '%s', %d, '%s', '%s', '%s', '%s'),\n",
+			sanitize(p.ID),
+			p.Date.Stamp(),
+			p.NOK,
+			sanitize(p.Account),
+			sanitize(p.Category),
+			sanitize(p.Location),
+			sanitize(p.Vendor),
+		)
 	}
 	stmt := fmt.Sprintf(qs, strings.TrimRight(vals, ",\n"))
 	if _, err := s.db.Exec(stmt); err != nil {
-		return fmt.Errorf("got error %w while executing %s", err, stmt)
+		return fmt.Errorf("got error %w while executing %s", err, qs)
 	}
 	return nil
 }
