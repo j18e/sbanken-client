@@ -22,6 +22,16 @@ type Date struct {
 	Day      int        `json:"day"`
 }
 
+func DateToday() Date {
+	now := time.Now()
+	return Date{
+		Year:     now.Year(),
+		Month:    now.Month(),
+		MonthNum: int(now.Month()),
+		Day:      now.Day(),
+	}
+}
+
 func (d Date) String() string {
 	if d.Day == 0 {
 		return fmt.Sprintf("%s %04d", d.Month, d.Year)

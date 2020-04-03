@@ -5,10 +5,23 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/j18e/sbanken-client/pkg/storage"
+	"github.com/kelseyhightower/envconfig"
 	log "github.com/sirupsen/logrus"
 )
 
 func NewServer(stor *storage.Storage) *Server {
+	var conf struct {
+		Debug bool `required:"false" envconfig:"DEBUG"`
+	}
+	if err := envconfig.Process("", &conf); err != nil {
+		log.Fatal(err)
+	}
+	if conf.Debug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	r := gin.Default()
 	r.Routes()
 	return &Server{Storage: stor, router: r}
