@@ -2,218 +2,274 @@
 
 {{ template "header.html" .}}
 
-<section class="section">
+<section class="columns section">
 
-  <div class="block">
-    <nav class="breadcrumb">
-      <ul id="month-picker">
-        <li><a href="/spending/{{printf "%04d" .prevMonth.Year}}/{{printf "%02d" .prevMonth.MonthNum}}">{{.prevMonth}}</a></li>
-        <li class="is-active"><a href="#">{{.month}}</a></li>
-        <li><a href="/spending/{{printf "%04d" .nextMonth.Year}}/{{printf "%02d" .nextMonth.MonthNum}}">{{.nextMonth}}</a></li>
-      </ul>
-    </nav>
-  </div>
+  <div class="column is-one-fifth"></div>
 
-  <div class="block" id="output"></div>
-
-  <div class="block">
-    <div class="subtitle" id="spending-total">Total: {{.total}} NOK</div>
-  </div>
-
-  <div class="block">
-    <div id="category-select" class="select">
-      <select onchange="selectOpt(this, 'category-cell')">
-        <option value="all">Select category</option>
-      </select>
+  <div class="column">
+    <div class="block">
+      <nav class="breadcrumb">
+        <ul id="month-picker">
+          <li><a href="/spending/{{printf "%04d" .prevMonth.Year}}/{{printf "%02d" .prevMonth.MonthNum}}">{{.prevMonth}}</a></li>
+          <li class="is-active"><a href="#">{{.month}}</a></li>
+          <li><a href="/spending/{{printf "%04d" .nextMonth.Year}}/{{printf "%02d" .nextMonth.MonthNum}}">{{.nextMonth}}</a></li>
+        </ul>
+      </nav>
     </div>
-  </div>
 
-  <script>
-    function cancelEdit(id) {
-      row = document.querySelector('#' + id);
+    <div class="block" id="output"></div>
 
-      // change fields to inputs
-      dateCell = row.querySelector(".date-cell");
-      dateInputs = dateCell.querySelectorAll('input')
-      dateCell.innerHTML = dateInputs[0].placeholder + '-' + dateInputs[1].placeholder + '-' + dateInputs[2].placeholder;
-      nokCell = row.querySelector(".nok-cell");
-      nokCell.innerHTML = nokCell.querySelector('input').placeholder;
-      catCell = row.querySelector(".category-cell");
-      catCell.innerHTML = catCell.querySelector('input').placeholder;
-      locCell = row.querySelector(".location-cell");
-      locCell.innerHTML = locCell.querySelector('input').placeholder;
-      vendCell = row.querySelector(".vendor-cell");
-      vendCell.innerHTML = vendCell.querySelector('input').placeholder;
+    <div class="block">
+      <div class="subtitle" id="spending-total">Total: {{.total}} NOK</div>
+    </div>
 
-      // swap buttons
-      b1 = row.querySelector('.button1-cell');
-      b1.querySelector('.edit-button').style.display = '';
-      b1.querySelector('.save-button').style.display = 'none';
-      b2 = row.querySelector('.button2-cell');
-      b2.querySelector('.delete-button').style.display = '';
-      b2.querySelector('.cancel-button').style.display = 'none';
+    <div class="block">
+      <div id="category-select" class="select">
+        <select onchange="selectOpt(this, 'category-cell')">
+          <option value="all">Select category</option>
+        </select>
+      </div>
+    </div>
 
-      row.classList.remove('currently-editing');
-    }
-
-    function cancelDelete(id) {
-      row = document.querySelector('#' + id);
-
-      // swap buttons
-      b1 = row.querySelector('.button1-cell');
-      b1.querySelector('.edit-button').style.display = '';
-      b1.querySelector('.confirm-delete-button').style.display = 'none';
-      b2 = row.querySelector('.button2-cell');
-      b2.querySelector('.delete-button').style.display = '';
-      b2.querySelector('.cancel-button').style.display = 'none';
-
-      row.classList.remove('currently-deleting');
-    }
-
-    function cancelAllEdits() {
-      rows = document.querySelectorAll('.currently-editing');
-      for (var i = 0; i < rows.length; i++) {
-        cancelEdit(rows[i].id);
-      }
-      rows = document.querySelectorAll('.currently-deleting');
-      for (var i = 0; i < rows.length; i++) {
-        cancelDelete(rows[i].id);
-      }
-    }
-
-    function editPurchase(id) {
-      cancelAllEdits();
-      row = document.querySelector('#' + id);
-      row.classList.add('currently-editing');
-
-      // change fields to inputs
-      dateCell = row.querySelector(".date-cell");
-      dateArray = dateCell.textContent.split('-');
-      dateCell.innerHTML = `
-        <input class="input" style="width:6rem" type="number" placeholder="${dateArray[0]}" value="${dateArray[0]}">
-        <input class="input" style="width:4rem" type="number" placeholder="${dateArray[1]}" value="${dateArray[1]}">
-        <input class="input" style="width:4rem" type="number" placeholder="${dateArray[2]}" value="${dateArray[2]}">
-      `
-      nokCell = row.querySelector(".nok-cell");
-      nokCell.innerHTML = `<input class="input" style="width:4rem" type="text"
-        placeholder="${nokCell.textContent}" value="${nokCell.textContent}">`
-      catCell = row.querySelector(".category-cell");
-      catCell.innerHTML = `<input class="input" style="width:8rem" type="text"
-        placeholder="${catCell.textContent}" value="${catCell.textContent}">`
-      locCell = row.querySelector(".location-cell");
-      locCell.innerHTML = `<input class="input" style="width:8rem" type="text"
-        placeholder="${locCell.textContent}" value="${locCell.textContent}">`
-      vendCell = row.querySelector(".vendor-cell");
-      vendCell.innerHTML = `<input class="input" style="width:8rem" type="text"
-        placeholder="${vendCell.textContent}" value="${vendCell.textContent}">`
-
-      // swap buttons
-      b1 = row.querySelector('.button1-cell');
-      b1.querySelector('.edit-button').style.display = 'none';
-      b1.querySelector('.save-button').style.display = '';
-      b2 = row.querySelector('.button2-cell');
-      b2.querySelector('.delete-button').style.display = 'none';
-      b2.querySelector('.cancel-button').style.display = '';
-      b2.querySelector('.cancel-button').addEventListener('click', cancelAllEdits);
-    }
-
-    function postMessage(severity, text) {
-      output = document.querySelector('#output');
-      for (var i = 0; i < output.children.length; i++) {
-        if (i < 2) {
-          continue
+    <div class="block">
+      <script>
+        function editablePurchase() {
+        // change fields to inputs
+          newRow = document.createElement('tr');
+          newRow.classList.add('currently-editing');
+          newRow.innerHTML = `
+              <th class="date-cell">
+                <input class="input" style="width:6rem" type="number" placeholder="yyyy">
+                <input class="input" style="width:4rem" type="number" placeholder="mm">
+                <input class="input" style="width:4rem" type="number" placeholder="dd">
+              </th>
+              <th class="nok-cell">
+                <input class="input" style="width:4rem" type="text" placeholder="nok">
+              </th>
+              <th class="category-cell">
+                <input class="input" style="width:8rem" type="text" placeholder="category">
+              </th>
+              <th class="location-cell">
+                <input class="input" style="width:8rem" type="text" placeholder="location">
+              </th>
+              <th class="vendor-cell">
+                <input class="input" style="width:8rem" type="text" placeholder="vendor">
+              </th>
+              <th class="button1-cell">
+                <button class="edit-button button is-warning" style="display:none">
+                  Edit
+                </button>
+                <button class="save-button button is-success">
+                  Save
+                </button>
+                <button class="confirm-delete-button button is-danger" style="display:none">
+                  Confirm delete
+                </button>
+              </th>
+              <th class="button2-cell">
+                <button class="delete-button button is-danger" style="display:none">
+                  Delete
+                </button>
+                <button class="cancel-button button is-info">
+                  Cancel
+                </button>
+              </th>
+          `;
+          return newRow
         }
-        output.removeChild(output.children[i]);
+        function newPurchase() {
+          body = document.querySelector('#spending-table-body')
+          body.insertBefore(editablePurchase(), body.childNodes[0]);
+        }
+      </script>
+      <button class="button is-success" onclick="newPurchase()">New purchase</button>
+    </div>
+
+    <script>
+      function cancelEdit(row) {
+        // change fields to inputs
+        dateCell = row.querySelector(".date-cell");
+        dateInputs = dateCell.querySelectorAll('input')
+        dateCell.innerHTML = dateInputs[0].placeholder + '-' + dateInputs[1].placeholder + '-' + dateInputs[2].placeholder;
+        nokCell = row.querySelector(".nok-cell");
+        nokCell.innerHTML = nokCell.querySelector('input').placeholder;
+        catCell = row.querySelector(".category-cell");
+        catCell.innerHTML = catCell.querySelector('input').placeholder;
+        locCell = row.querySelector(".location-cell");
+        locCell.innerHTML = locCell.querySelector('input').placeholder;
+        vendCell = row.querySelector(".vendor-cell");
+        vendCell.innerHTML = vendCell.querySelector('input').placeholder;
+
+        // swap buttons
+        b1 = row.querySelector('.button1-cell');
+        b1.querySelector('.edit-button').style.display = '';
+        b1.querySelector('.save-button').style.display = 'none';
+        b2 = row.querySelector('.button2-cell');
+        b2.querySelector('.delete-button').style.display = '';
+        b2.querySelector('.cancel-button').style.display = 'none';
+
+        row.classList.remove('currently-editing');
       }
-      output.innerHTML += `
-        <div class="message ${severity}">
-          <div class="message-body">${text}</div>
-        </div>
-      `
-    }
 
-    function deletePurchase(id) {
-      cancelAllEdits();
-      const row = document.querySelector('#' + id);
-      row.classList.add('currently-deleting');
+      function cancelDelete(row) {
+        // swap buttons
+        b1 = row.querySelector('.button1-cell');
+        b1.querySelector('.edit-button').style.display = '';
+        b1.querySelector('.confirm-delete-button').style.display = 'none';
+        b2 = row.querySelector('.button2-cell');
+        b2.querySelector('.delete-button').style.display = '';
+        b2.querySelector('.cancel-button').style.display = 'none';
 
-      // swap buttons
-      b1 = row.querySelector('.button1-cell');
-      b1.querySelector('.edit-button').style.display = 'none';
-      b1.querySelector('.save-button').style.display = 'none';
-      b1.querySelector('.confirm-delete-button').style.display = '';
-      b1.querySelector('.confirm-delete-button').addEventListener('click', function() {
-        purchaseId = id.replace(/^purchase-/, '');
-        fetch(`/api/purchase/${purchaseId}`, {method: "DELETE"})
-          .then(response => {
-            if (response.status != 200) {
-              postMessage("is-danger", "something went wrong deleting the transaction");
-              cancelAllEdits();
-              throw Error(response.statusText);
-            } else {
-              row.parentNode.removeChild(row);
-              postMessage("is-success", "transaction successfully deleted");
-              updateTotal();
-              return response.text();
-            }
-          })
-          .catch(err => console.log(err));
-      });
-      b2 = row.querySelector('.button2-cell');
-      b2.querySelector('.delete-button').style.display = 'none';
-      b2.querySelector('.cancel-button').style.display = '';
-      b2.querySelector('.cancel-button').addEventListener('click', cancelAllEdits);
-    }
-  </script>
+        row.classList.remove('currently-deleting');
+      }
 
-  <table class="table is-hoverable" id="spending-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>NOK</th>
-        <th>Category</th>
-        <th>Location</th>
-        <th>Vendor</th>
-        <th></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-  {{range .payload }}
-  <tr id="purchase-{{.ID}}">
-        <th class="date-cell">{{.Date.Stamp}}</th>
-        <th class="nok-cell">{{.NOK}}</th>
-        <th class="category-cell">{{.Category}}</th>
-        <th class="location-cell">{{.Location}}</th>
-        <th class="vendor-cell">{{.Vendor}}</th>
-        <th class="button1-cell">
-          <button class="edit-button button is-warning" onclick="editPurchase('purchase-{{.ID}}')">
-            Edit
-          </button>
-          <button class="save-button button is-success" style="display:none">
-            Save
-          </button>
-          <button class="confirm-delete-button button is-danger" style="display:none">
-            Confirm delete
-          </button>
-        </th>
-        <th class="button2-cell">
-          <button class="delete-button button is-danger" onclick="deletePurchase('purchase-{{.ID}}')">
-            Delete
-          </button>
-          <button class="cancel-button button is-info" style="display:none">
-            Cancel
-          </button>
-        </th>
-      </tr>
-  {{end}}
-    </tbody>
-  </table>
-  <script>
-    updateTotal();
-    addToSelectors("category-select", "category-cell");
-  </script>
+      function cancelAllEdits() {
+        const editRows = document.querySelectorAll('.currently-editing');
+        for (let row of editRows) {
+          cancelEdit(row);
+        }
+        const deleteRows = document.querySelectorAll('.currently-deleting');
+        for (let row of deleteRows) {
+          cancelDelete(row);
+        }
+      }
 
+      function editPurchase(id) {
+        cancelAllEdits();
+        row = document.querySelector('#' + id);
+        row.classList.add('currently-editing');
+
+        // change fields to inputs
+        dateCell = row.querySelector(".date-cell");
+        dateArray = dateCell.textContent.split('-');
+        dateCell.innerHTML = `
+          <input class="input" style="width:6rem" type="number" placeholder="${dateArray[0]}" value="${dateArray[0]}">
+          <input class="input" style="width:4rem" type="number" placeholder="${dateArray[1]}" value="${dateArray[1]}">
+          <input class="input" style="width:4rem" type="number" placeholder="${dateArray[2]}" value="${dateArray[2]}">
+        `
+        nokCell = row.querySelector(".nok-cell");
+        nokCell.innerHTML = `<input class="input" style="width:4rem" type="text"
+          placeholder="${nokCell.textContent}" value="${nokCell.textContent}">`
+        catCell = row.querySelector(".category-cell");
+        catCell.innerHTML = `<input class="input" style="width:8rem" type="text"
+          placeholder="${catCell.textContent}" value="${catCell.textContent}">`
+        locCell = row.querySelector(".location-cell");
+        locCell.innerHTML = `<input class="input" style="width:8rem" type="text"
+          placeholder="${locCell.textContent}" value="${locCell.textContent}">`
+        vendCell = row.querySelector(".vendor-cell");
+        vendCell.innerHTML = `<input class="input" style="width:8rem" type="text"
+          placeholder="${vendCell.textContent}" value="${vendCell.textContent}">`
+
+        // swap buttons
+        b1 = row.querySelector('.button1-cell');
+        b1.querySelector('.edit-button').style.display = 'none';
+        b1.querySelector('.save-button').style.display = '';
+        b2 = row.querySelector('.button2-cell');
+        b2.querySelector('.delete-button').style.display = 'none';
+        b2.querySelector('.cancel-button').style.display = '';
+        b2.querySelector('.cancel-button').addEventListener('click', cancelAllEdits);
+      }
+
+      function postMessage(severity, text) {
+        output = document.querySelector('#output');
+        for (var i = 0; i < output.children.length; i++) {
+          if (i < 2) {
+            continue
+          }
+          output.removeChild(output.children[i]);
+        }
+        output.innerHTML += `
+          <div class="message ${severity}">
+            <div class="message-body">${text}</div>
+          </div>
+        `
+      }
+
+      function deletePurchase(id) {
+        cancelAllEdits();
+        const row = document.querySelector('#' + id);
+        row.classList.add('currently-deleting');
+
+        // swap buttons
+        b1 = row.querySelector('.button1-cell');
+        b1.querySelector('.edit-button').style.display = 'none';
+        b1.querySelector('.save-button').style.display = 'none';
+        b1.querySelector('.confirm-delete-button').style.display = '';
+        b1.querySelector('.confirm-delete-button').addEventListener('click', function() {
+          purchaseId = id.replace(/^purchase-/, '');
+          fetch(`/api/purchase/${purchaseId}`, {method: "DELETE"})
+            .then(response => {
+              if (response.status != 200) {
+                postMessage("is-danger", "something went wrong deleting the transaction");
+                cancelAllEdits();
+                throw Error(response.statusText);
+              } else {
+                row.parentNode.removeChild(row);
+                postMessage("is-success", "transaction successfully deleted");
+                updateTotal();
+                return response.text();
+              }
+            })
+            .catch(err => console.log(err));
+        });
+        b2 = row.querySelector('.button2-cell');
+        b2.querySelector('.delete-button').style.display = 'none';
+        b2.querySelector('.cancel-button').style.display = '';
+        b2.querySelector('.cancel-button').addEventListener('click', cancelAllEdits);
+      }
+    </script>
+
+    <div class="table-container">
+      <table class="table is-hoverable" id="spending-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>NOK</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Vendor</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="spending-table-body">
+          {{range .payload }}
+          <tr id="purchase-{{.ID}}">
+            <th class="date-cell">{{.Date.Stamp}}</th>
+            <th class="nok-cell">{{.NOK}}</th>
+            <th class="category-cell">{{.Category}}</th>
+            <th class="location-cell">{{.Location}}</th>
+            <th class="vendor-cell">{{.Vendor}}</th>
+            <th class="button1-cell">
+              <button class="edit-button button is-warning" onclick="editPurchase('purchase-{{.ID}}')">
+                Edit
+              </button>
+              <button class="save-button button is-success" style="display:none">
+                Save
+              </button>
+              <button class="confirm-delete-button button is-danger" style="display:none">
+                Confirm delete
+              </button>
+            </th>
+            <th class="button2-cell">
+              <button class="delete-button button is-danger" onclick="deletePurchase('purchase-{{.ID}}')">
+                Delete
+              </button>
+              <button class="cancel-button button is-info" style="display:none">
+                Cancel
+              </button>
+            </th>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    <script>
+      updateTotal();
+      addToSelectors("category-select", "category-cell");
+    </script>
+
+  </div>
 </section>
 
-{{ template "footer.html" .}}
+  {{ template "footer.html" .}}
