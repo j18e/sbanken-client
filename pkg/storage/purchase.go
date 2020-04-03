@@ -22,11 +22,14 @@ func (s *Storage) AddPurchases(px []*models.Purchase) error {
 
 	vals := ""
 	for _, p := range px {
-		vals += fmt.Sprintf(`('%s', '%s', %d, '%s', '%s', '%s', '%s'), `, p.ID, p.Date.Stamp(),
+		vals += fmt.Sprintf("('%s', '%s', %d, '%s', '%s', '%s', '%s'),\n", p.ID, p.Date.Stamp(),
 			p.NOK, p.Account, p.Category, p.Location, p.Vendor)
 	}
-	_, err := s.db.Exec(fmt.Sprintf(qs, strings.TrimRight(vals, ", ")))
-	return err
+	stmt := fmt.Sprintf(qs, strings.TrimRight(vals, ",\n"))
+	if _, err := s.db.Exec(stmt); err != nil {
+		return fmt.Errorf("got error %w while executing %s", err, stmt)
+	}
+	return nil
 }
 
 // GetPurchases retreives all purchases for the given month from storage
